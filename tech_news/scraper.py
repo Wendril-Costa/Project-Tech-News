@@ -53,22 +53,15 @@ def scrape_news(html_content):
 # Requisito 5
 def get_tech_news(amount):
     url = "https://blog.betrybe.com"
-    news = []
+    pages = fetch(url)
+    links = []
 
-    while True:
-        html_content = fetch(url)
-        if not html_content:
-            break
-        links = scrape_updates(html_content)
-        news += [
-            notice
-            for link in links
-            if (notice := scrape_news(fetch(link))) is not None
-        ]
-        url = scrape_next_page_link(html_content)
-
-        if len(news) >= amount:
-            break
-
-    create_news(news)
-    return news
+    while len(links) < amount:
+        links.extend(scrape_updates(pages))
+        pages = fetch(scrape_next_page_link(pages))
+    result = []
+    for link in links[:amount]:
+        fetch_links = fetch(link)
+        result.append(scrape_news(fetch_links))
+    create_news(result)
+    return result
