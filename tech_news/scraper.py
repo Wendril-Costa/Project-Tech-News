@@ -20,7 +20,7 @@ def fetch(url):
 # Requisito 2
 def scrape_updates(html_content):
     sel = Selector(html_content)
-    return [card.css("a::attr(href)").get() for card in sel.css(".post")[1:]]
+    return sel.css("header h2 > a::attr(href)").getall()
 
 
 # Requisito 3
@@ -52,22 +52,14 @@ def scrape_news(html_content):
 
 # Requisito 5
 def get_tech_news(amount):
-    page = fetch("https://blog.betrybe.com/")
-    links = scrape_updates(page)
+    url = "https://blog.betrybe.com"
+    news = []
 
-    while len(links) < amount:
-        next_page = scrape_next_page_link(page)
-        page = fetch(next_page)
-        news_links = scrape_updates(page)
-        for news_link in news_links:
-            links.append(news_link)
-
-    news_list = []
-
-    for index in range(amount):
-        req = fetch(links[index])
-        news_list.append(scrape_news(req))
-
-    create_news(news_list)
-
-    return news_list
+    while len(news) < amount:
+        for link in scrape_updates(fetch(url)):
+            news.append(scrape_news(fetch(link)))
+            if len(news) == amount:
+                break
+        url = scrape_next_page_link(fetch(url))
+    create_news(news)
+    return news[:amount]
